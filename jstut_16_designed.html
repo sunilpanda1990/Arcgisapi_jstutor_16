@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<head>
+<title>Arcgis api for js tt14</title>
+<script src="https://js.arcgis.com/4.4/"></script>
+<link rel="stylesheet" href="https://js.arcgis.com/4.4/esri/css/main.css">
+
+<style>
+
+/*
+.button {
+  padding: 3px 3px;
+  font-size: 8px;
+  text-align: center;
+  cursor: pointer;
+  outline: none;
+  color: #fff;
+  background-color: #4CAF50;
+  border: none;
+}
+
+.button:hover {background-color: #3e8e41}
+
+.button:active {
+  background-color: #3e8e41;
+  transform: translateY(4px);
+}
+*/
+
+.button2 {
+  background-color: #4CAF50; /* Green */
+  border: none;
+  color: white;
+  padding: 3px 10px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 15px;
+  margin: 4px 2px;
+  -webkit-transition-duration: 0.4s; /* Safari */
+  transition-duration: 0.4s;
+  cursor: pointer;
+}
+.button2 {
+  background-color: white; 
+  color: black; 
+  border: 2px solid #008CBA;
+  border-radius:5px;
+ 
+}
+
+.button2:hover {
+  background-color: #008CBA;
+  color: white;
+}
+
+.button {
+  position: relative;
+  background-color: #2a4a7f;
+  border-radius: 10px;
+  font-size: 15px;
+  color: #FFFFFF;
+  padding: 3px;
+  width: 45px;
+  text-align: center;
+  -webkit-transition-duration: 0.4s; /* Safari */
+  transition-duration: 0.4s;
+  text-decoration: none;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.button:after {
+  content: "";
+  background: #f1f1f1;
+  display: block;
+  position: absolute;
+  padding-top: 300%;
+  padding-left: 350%;
+  margin-left: -20px !important;
+  margin-top: -120%;
+  opacity: 0;
+  transition: all 0.8s
+}
+
+.button:active:after {
+  padding: 0;
+  margin: 0;
+  opacity: 1;
+  transition: 0s
+}
+
+.selectitem {
+	margin-top: 15px;
+	padding: 6px 6px;
+	font-size: 15px;
+	font-weight:bold;
+    position: relative;
+	background-color: #668cff;
+    display: inline-block;
+	color: white;
+	border-radius: 5px;
+}
+ body {
+  height: 100%;
+  margin: 0;
+}
+
+.bg {
+  /* The image used */
+  background-image: url("https://www.spar3d.com/wp-content/uploads/2017/09/How-GIS-supports-the-Internet-of-Things-FIG-3.jpg");
+
+  /* Full height */
+  height: 100%; 
+
+  /* Center and scale the image nicely */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+.checkmark {
+  position: left;
+  height: 15px;
+  width: 15px;
+  background-color: #2196F3;
+}
+.customers {
+  font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+  width: 50%;
+}
+
+.customers td, #customers th {
+  border: 1px solid #ddd;
+  padding: 3px;
+}
+
+.customers tr:nth-child(even){background-color: #f2f2f2;}
+
+.customers tr:hover {background-color: #2196F3;}
+
+.customers th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #4CAF50;
+  color: white;
+}
+
+</style>
+
+
+
+</head>
+<body>
+
+  Featurelayer  <select class="selectitem" id='listservices'></select>
+BaseMap  <select class="selectitem" id="basemaps"></select>
+<table border=1>
+<tr>
+	<td valign=top>
+		<div id="toc" ></div>
+			<ul>
+				
+			</ul>
+	</td>
+	
+	<td >
+	
+		<div id="mapview" style='width:70vw;margin-left3px;padding:0; height: 70vh'></div>
+	
+	</td>
+</tr>
+<tr>
+	<td colspan=2><div id='pages'>PAGE WIDGET</td>
+</tr>
+<tr>
+	<td colspan=2><div id='attributetable'>ATTRIBUTE TABLE</td>
+</tr>
+	
+	
+</table>
+
+
+
+<script>
+
+var mymap3;
+let mapview;
+let lastlong;
+let lastlat;
+let lastzoom;
+let req;
+let Request;
+let selectedsevice;
+let pagecount;
+let Graphic;
+let pointfeat;
+let polyfeat;
+let linemarker;
+let polygonfeat;
+let fillmarker;
+let viewoptions;
+let symbol;
+const defaultpagesize=50;
+
+require(["esri/Map","esri/views/MapView","esri/request","esri/layers/MapImageLayer","esri/widgets/Legend","esri/widgets/Search","esri/Graphic","esri/symbols/SimpleMarkerSymbol",
+	"esri/geometry/Geometry",
+    "esri/geometry/Point",
+    "esri/geometry/Polyline",
+    "esri/geometry/Polygon",
+	"esri/symbols/SimpleLineSymbol",
+    "esri/symbols/SimpleFillSymbol",
+    "esri/Color",
+    "dojo/domReady!"],
+
+function(Map,MapView,EsriRequest,maplayer,Legend,Search,Graphicclass,MarkerSymbol,Geometry,Point,Polyline,Polygon,SimpleLineSymbol,SimpleFillSymbol,Color)
+{
+	//add map
+	mymap3=new Map({basemap:"streets"});
+	 viewoptions={container:"mapview",map:mymap3,zoom:15,center:[21.26889971996225,78.24462890622974],scale:100}
+	 mapview=new MapView(viewoptions);
+	symbol=MarkerSymbol;
+	pointfeat=Point;
+	polyfeat=Polyline;
+	polygonfeat=Polygon;
+	linemarker=SimpleLineSymbol;
+	Request=EsriRequest;
+	fillmarker=SimpleFillSymbol;
+	Graphic=Graphicclass;
+	generatebasemaps();
+	 
+	 
+	 let legend=new Legend({view:mapview});
+	 mapview.ui.add(legend,"bottom-right");
+	 
+	 let search=new Search({view:mapview});
+	 
+	 mapview.ui.add(search,"top-left");
+	 
+	 lastlat=mapview.center.latitude;
+			lastlong=mapview.center.longitude;
+			lastzoom=mapview.center.zoom;
+	 
+	 //add layer
+	//var layer=new maplayer({url:"https://server.arcgisonline.com/arcgis/rest/services/Specialty/DeLorme_World_Base_Map/MapServer"});
+	//mymap3.add(layer);
+	
+	//zoom layer
+	//layer.then(function()
+	//{
+	//	mapview.goTo(layer.fullExtent)
+	//})
+	
+	//for dropdown
+	var url="https://sampleserver6.arcgisonline.com/arcgis/rest/services?f=pjson";
+	var options={responseType:"json"};
+	
+	//adding in a dropdown
+	Request(url,options).then(function(response)
+	{
+	var result=response.data;
+	var listservices=document.getElementById("listservices");
+	
+	listservices.addEventListener("change",function()
+	{
+		selectedsevice=listservices.options[listservices.selectedIndex].textContent;
+		//alert(selectedsevice);
+		var flayer=new maplayer({url:"https://sampleserver6.arcgisonline.com/arcgis/rest/services/"+selectedsevice+"/MapServer"});
+		mymap3.removeAll();
+		mymap3.add(flayer);
+		//addds required inputs and layers and visible layers as per checkbox selections
+		flayer.then(function()
+		{
+			let toc=document.getElementById("toc");
+			toc.innerHTML="";
+			
+			let layerlist=document.createElement("ul");
+			toc.appendChild(layerlist);
+			populatelayer_recursive(flayer,layerlist)
+			
+			mapview.center=[lastlat,lastlong];mapview.zoom=lastzoom;
+			mapview.goTo(flayer.fullExtent)
+		})
+		})
+	
+	
+	for (var i =0;i<result.services.length;i++)
+	{
+		var option=document.createElement("option");
+		option.textContent=result.services[i].name;
+		listservices.appendChild(option);
+		//alert(result.services[i].name);
+	}
+	})
+	//for querying of layer
+});
+function getcount(layerid,featurecount)
+{
+	let queryrl="https://sampleserver6.arcgisonline.com/arcgis/rest/services/"+selectedsevice+"/MapServer"+"/"+layerid+"/query";
+	let queryoptions={responseType:"json",query:{f:"json",where:"1=1",returnCountOnly:true}}
+	Request(queryrl,queryoptions).then(response=>featurecount(response.data.count), response=>featurecount(0));
+	
+	
+}
+//populates layer in list
+function populatelayer(player,layerlist)
+{
+	for(let i=0;i<player.sublayers.length;i++)
+			{
+				
+				let sublayer=player.sublayers.items[i];
+				let check_box=document.createElement("input");
+				check_box.className = "slideThree";
+				check_box.type="checkbox";
+				check_box.value=sublayer.id;
+				check_box.checked=sublayer.visible;
+				check_box.addEventListener("click",function(e)
+				{
+					let clickedlayer=player.findSublayerById(Number(e.target.value));
+					//alert(clickedlayer.title)
+					clickedlayer.visible=e.target.checked
+				})
+				let label=document.createElement("label");
+				label.textContent=sublayer.title;
+				
+				let layeritem=document.createElement("li");
+				
+				layeritem.appendChild(check_box);
+				layeritem.appendChild(label);
+				
+				layerlist.appendChild(layeritem);
+			}
+}
+
+
+
+function populatelayer_recursive(player,layerlist)
+{
+				let check_box=document.createElement("input");
+				check_box.className = "checkmark";
+				check_box.type="checkbox";
+				check_box.value=player.id;
+				check_box.checked=player.visible;
+				check_box.addEventListener("click",e=> player.visible=e.target.checked)
+				let label=document.createElement("label");
+				label.textContent=player.title+'    ';
+				
+				let button=document.createElement("button");
+				button.className="button";
+				button.textContent="View";
+				//getcount(player.id,button);
+				//open attribute table
+				populateAttributeTable
+				let layeritem=document.createElement("li");
+				button.layerid=player.id;
+				button.addEventListener("click",openattrbutetable);
+				layeritem.appendChild(check_box);
+				layeritem.appendChild(label);
+				layeritem.appendChild(button);
+				layerlist.appendChild(layeritem);
+				
+				if(player.sublayers != null && player.sublayers.items.length > 0)
+				{
+				
+					let lst=document.createElement("ul");
+					layerlist.appendChild(lst);
+					for(let i=0;i<player.sublayers.length;i++)
+					{
+						populatelayer_recursive(player.sublayers.items[i],lst);
+						//mapview.goTo(player.sublayers.items[i].fullExtent);
+					}
+				}
+				/*for(let i=0;i<player.sublayers.length;i++)
+				{
+					let sublayer=player.sublayers.items[i];
+				}*/
+			
+}
+
+
+function drawpoint()
+{
+	var point = new pointfeat(mapview.center.longitude, mapview.center.latitude);
+    var pointSymbol = new symbol();
+	pointSymbol.color=[0,255,0,0.5];
+	pointSymbol.size=30;
+    var pointAttributes = { city: "Mumbai", state: "Maharastra" };
+    var pointGraphic = new Graphic(point, pointSymbol, pointAttributes);
+	mapview.graphics.add(pointGraphic);
+}
+
+function drawpolyline()
+{
+	 var polyline= new polyfeat();
+	 polyline.paths=[[[mapview.center.longitude, mapview.center.latitude], [mapview.center.longitude+3, mapview.center.latitude+3]]];
+	 var polylinesymbol=new linemarker(); 
+	 polylinesymbol.color="red";
+	 polylinesymbol.width=2;
+	 let linegraphic= new Graphic(polyline, polylinesymbol);
+	 mapview.graphics.add(linegraphic);
+}
+
+function drawpolygon()
+{
+	var poly=new polygonfeat();
+	poly.rings= [[[mapview.center.longitude, mapview.center.latitude],[mapview.center.longitude, mapview.center.latitude+1],[mapview.center.longitude+1, mapview.center.latitude+1],[mapview.center.longitude+1, mapview.center.latitude+1]]];
+	var polygonsymbol=new fillmarker();
+	polygonsymbol.color="#A6D046";
+	polygonsymbol.width=2;
+	var polygonGraphic = new Graphic();
+	polygonGraphic.geometry=poly;
+	polygonGraphic.symbol=polygonsymbol;
+	mapview.graphics.add(polygonGraphic);
+	
+}
+//generates basemaps
+function generatebasemaps()
+{
+	let basemaps=[];
+	//let toc=document.getElementById("toc");
+	basemaps.push("satellite");
+	basemaps.push("topo");
+	basemaps.push("osm");
+	basemaps.push("hybrid");
+	basemaps.push("terrain");
+	basemaps.push("streets-night-vector");
+	basemaps.push("streets-navigation-vector");
+	basemaps.push("streets-relief-vector");
+
+	let setbmap= function(e)
+	{
+		var ddlist=e.target;
+		let thebasemap= ddlist.options[ddlist.selectedIndex].textContent;
+		mymap3.basemap =thebasemap;
+		
+	}
+	let cmbbasemaps=document.getElementById("basemaps");
+	cmbbasemaps.addEventListener("change",setbmap)
+	for (let i=0;i<basemaps.length;i++)
+	{
+		
+		var option=document.createElement("option");
+		option.id=basemaps[i];
+		option.textContent=basemaps[i];
+		cmbbasemaps.appendChild(option);
+	}
+	
+}
+
+//opens attribute table
+function openattrbutetable(e)
+{
+	let featurelayer=e.target.layerid;
+	let featurecount=0;
+	getcount(featurelayer,c=>
+	{featurecount=c;
+	populatepages(featurelayer,featurecount);
+	populateAttributeTable(featurelayer,1,featurecount)
+	});
+}
+
+//populating pages if more than default size records found
+
+function populatepages(featurelayer,featurecount)
+{
+	let dividecount;
+	dividecount=Math.ceil(featurecount / defaultpagesize);
+	let pagesdiv=document.getElementById("pages");
+	pagesdiv.innerHTML="";
+	for(let i=0;i<dividecount;i++)
+	{
+		let page=document.createElement("button");
+		page.className="button2";
+		page.textContent=i+1;
+		page.addEventListener("click",function()
+		{
+			//e.target.style.color="red";
+			populateAttributeTable(featurelayer,i+1,featurecount);
+		})
+		pagesdiv.appendChild(page);
+	}
+	//alert(dividecount);
+	
+	
+}
+
+//adding values to attribute table
+function populateAttributeTable(layerid,page,featurecount)
+{	
+	let queryrl="https://sampleserver6.arcgisonline.com/arcgis/rest/services/"+selectedsevice+"/MapServer"+"/"+layerid+"/query";
+	let attributetable=document.getElementById("attributetable");
+	attributetable.innerHTML="";
+	attributetable.className="customers";
+	let queryoptions={responseType:"json",query:{f:"json",where:"1=1",returnCountOnly:false,outFields:"*",resultOffset:(page-1)*defaultpagesize+1,resultRecordCount:defaultpagesize}}
+	Request(queryrl,queryoptions).then(response=> 
+	{
+		
+		let table=document.createElement("table");
+		
+		let header=document.createElement("tr");
+		table.appendChild(header);
+		for (let i=0; i < response.data.fields.length;i++)
+		{
+			let column=document.createElement("th");
+			table.border=2;
+			column.textContent=response.data.fields[i].alias;
+			header.appendChild(column);
+			
+		}
+		
+		//loop trough features
+		
+		for (let j=0; j < response.data.features.length;j++)
+		{
+			let rowelem=document.createElement("tr");
+			table.appendChild(rowelem);
+			let feature=response.data.features[j];
+		for (let i=0; i < response.data.fields.length;i++)
+		{
+			let field=response.data.fields[i];
+			let column=document.createElement("td");
+			
+			column.textContent=feature.attributes[field.name];
+			rowelem.appendChild(column);
+			
+		}
+			
+		}
+		
+		attributetable.appendChild(table);
+		
+		//alert(response.data.fields.length);
+	}, response=>el.style.visibility="hidden");
+	
+}
+
+</script>
+</div>
+</body>
+</html>
